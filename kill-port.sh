@@ -1,8 +1,32 @@
 #!/bin/bash
 
+# Version information
+SCRIPT_NAME="Kill Port"
+VERSION="1.0.0"
+AUTHOR="DARKHORSEONE LIMITED"
+LICENSE="MIT License"
+DESCRIPTION="Interactive command-line tool to find and kill processes running on specific ports"
+
 # Parse command line arguments
 AUTO_REFRESH=false
 REFRESH_INTERVAL=5
+
+# Function to show version information
+show_version() {
+    echo "$SCRIPT_NAME v$VERSION"
+    echo "$DESCRIPTION"
+    echo ""
+    echo "Author: $AUTHOR"
+    echo "License: $LICENSE"
+    echo ""
+    echo "Features:"
+    echo "  • Interactive port browsing with fzf"
+    echo "  • Process preview and confirmation dialogs"
+    echo "  • Optional auto-refresh functionality"
+    echo "  • Cross-platform compatibility (macOS/Linux)"
+    echo ""
+    echo "Repository: https://github.com/darkhorseone/kill-port"
+}
 
 # Function to show usage
 show_usage() {
@@ -11,12 +35,14 @@ show_usage() {
     echo "Options:"
     echo "  --auto-refresh, -a    Enable auto-refresh every 5 seconds (default: disabled)"
     echo "  --interval N, -i N    Set auto-refresh interval in seconds (default: 5)"
+    echo "  --version, -v        Show version information"
     echo "  --help, -h           Show this help message"
     echo ""
     echo "Examples:"
     echo "  $0                   # Run without auto-refresh"
     echo "  $0 --auto-refresh    # Run with auto-refresh every 5 seconds"
     echo "  $0 -a -i 10          # Run with auto-refresh every 10 seconds"
+    echo "  $0 --version         # Show version information"
 }
 
 # Parse arguments
@@ -34,6 +60,10 @@ while [[ $# -gt 0 ]]; do
                 echo "Error: --interval requires a positive number" >&2
                 exit 1
             fi
+            ;;
+        --version|-v)
+            show_version
+            exit 0
             ;;
         --help|-h)
             show_usage
@@ -187,7 +217,7 @@ run_fzf_interface() {
     if [[ "$AUTO_REFRESH" == "true" ]]; then
         header_msg="$header_msg | Auto-refresh: ${REFRESH_INTERVAL}s"
     fi
-    header_msg="$header_msg | Ctrl+R: Manual refresh"
+    header_msg="$header_msg | R: Manual refresh"
     
     if [[ "$AUTO_REFRESH" == "true" ]]; then
         # Run with auto-refresh timeout
@@ -198,7 +228,7 @@ run_fzf_interface() {
             --bind "n:change-preview(handle_port_action {} preview)" \
             --bind "q:abort" \
             --bind "enter:ignore" \
-            --bind "ctrl-r:reload(get_listening_ports)" \
+            --bind "r:reload(get_listening_ports)" \
             --preview "$preview_cmd" \
             --preview-window=up:45%:wrap \
             --height=100% &
@@ -230,7 +260,7 @@ run_fzf_interface() {
             --bind "n:change-preview(handle_port_action {} preview)" \
             --bind "q:abort" \
             --bind "enter:ignore" \
-            --bind "ctrl-r:reload(get_listening_ports)" \
+            --bind "r:reload(get_listening_ports)" \
             --preview "$preview_cmd" \
             --preview-window=up:45%:wrap \
             --height=100%

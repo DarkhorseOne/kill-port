@@ -88,18 +88,46 @@ Usage: ./kill-port.sh [OPTIONS]
 Options:
   --auto-refresh, -a    Enable auto-refresh every 5 seconds (default: disabled)
   --interval N, -i N    Set auto-refresh interval in seconds (default: 5)
+  --version, -v        Show version information
   --help, -h           Show this help message
 
 Examples:
   ./kill-port.sh                   # Run without auto-refresh
   ./kill-port.sh --auto-refresh    # Run with auto-refresh every 5 seconds
   ./kill-port.sh -a -i 10          # Run with auto-refresh every 10 seconds
+  ./kill-port.sh --version         # Show version information
 ```
 
 Or if installed globally:
 
 ```bash
 kill-port -a -i 3  # Auto-refresh every 3 seconds
+kill-port --version  # Show version information
+```
+
+### Version Information
+
+To see version details, features, and license information:
+
+```bash
+./kill-port.sh --version
+```
+
+Output example:
+```
+Kill Port v1.0.0
+Interactive command-line tool to find and kill processes running on specific ports
+
+Author: DARKHORSEONE LIMITED
+License: MIT License
+
+Features:
+  • Interactive port browsing with fzf
+  • Process preview and confirmation dialogs
+  • Optional auto-refresh functionality
+  • Cross-platform compatibility (macOS/Linux)
+
+Repository: https://github.com/darkhorseone/kill-port
 ```
 
 ### Interface Controls
@@ -107,7 +135,7 @@ kill-port -a -i 3  # Auto-refresh every 3 seconds
 #### Main Interface
 - **Arrow keys** - Navigate through the list of listening ports
 - **K key** - Enter confirmation mode for killing the selected process
-- **Ctrl+R** - Manually refresh the port list
+- **R** - Manually refresh the port list
 - **Q/Esc/Ctrl+C** - Exit the application
 
 #### Confirmation Mode
@@ -130,12 +158,12 @@ The script displays a list of all listening ports with a dynamic header:
 
 **Without auto-refresh:**
 ```
-Use arrow keys to navigate, press 'K' to kill (with confirmation), 'Q' to quit | Ctrl+R: Manual refresh
+Use arrow keys to navigate, press 'K' to kill (with confirmation), 'Q' to quit | R: Manual refresh
 ```
 
 **With auto-refresh:**
 ```
-Use arrow keys to navigate, press 'K' to kill (with confirmation), 'Q' to quit | Auto-refresh: 5s | Ctrl+R: Manual refresh
+Use arrow keys to navigate, press 'K' to kill (with confirmation), 'Q' to quit | Auto-refresh: 5s | R: Manual refresh
 ```
 
 The port list shows:
@@ -227,7 +255,7 @@ Feel free to submit issues or pull requests to improve the script!
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-Copyright (c) 2025 DARKHORSEONE.CO.UK
+Copyright (c) 2025 DARKHORSEONE LIMITED
 
 ## Troubleshooting
 
@@ -236,7 +264,7 @@ Copyright (c) 2025 DARKHORSEONE.CO.UK
 
 **"No process found" message:**
 - The port might not be in use anymore
-- Try refreshing the list manually with Ctrl+R or wait for auto-refresh
+- Try refreshing the list manually with R or wait for auto-refresh
 
 **Permission denied when killing process:**
 - You might need to run the script with `sudo` for system processes
