@@ -361,7 +361,10 @@ handle_port_action() {
 
 # Function to get listening ports
 get_listening_ports() {
+    # Add table header
     if [[ "$USE_COLOR" == "true" ]]; then
+        echo -e "${BOLD}${CYAN}PROTO      RECV-Q SEND-Q LOCAL ADDRESS          FOREIGN ADDRESS        STATE${RESET}"
+        echo -e "${DIM}────────── ────── ────── ────────────────────── ────────────────────── ──────${RESET}"
         # Apply colors to the port list while preserving original format
         netstat -anv | grep LISTEN | while IFS= read -r line; do
             # Apply colors using echo -e for proper escape sequence handling
@@ -373,7 +376,9 @@ get_listening_ports() {
                     -e "s/LISTEN/$(printf '\033[1;33m')&$(printf '\033[0m')/g"
         done
     else
-        # No colors, just return normal output
+        # No colors, just return normal output with header
+        echo "PROTO      RECV-Q SEND-Q LOCAL ADDRESS          FOREIGN ADDRESS        STATE"
+        echo "────────── ────── ────── ────────────────────── ────────────────────── ──────"
         netstat -anv | grep LISTEN
     fi
 }
@@ -423,6 +428,7 @@ run_fzf_interface() {
         if [[ "$USE_COLOR" == "true" ]]; then
             get_listening_ports | USE_COLOR=true SHELL=/bin/bash fzf \
                 --ansi \
+                --header-lines=2 \
                 --header "$header_msg" \
                 --bind "k:change-preview(handle_port_action {} confirm)" \
                 --bind "y:execute(handle_port_action {} kill)+reload(USE_COLOR=true get_listening_ports)+change-preview(handle_port_action {} preview)" \
@@ -435,6 +441,7 @@ run_fzf_interface() {
                 --height=100% &
         else
             get_listening_ports | SHELL=/bin/bash fzf \
+                --header-lines=2 \
                 --header "$header_msg" \
                 --bind "k:change-preview(handle_port_action {} confirm)" \
                 --bind "y:execute(handle_port_action {} kill)+reload(get_listening_ports)+change-preview(handle_port_action {} preview)" \
@@ -470,6 +477,7 @@ run_fzf_interface() {
         if [[ "$USE_COLOR" == "true" ]]; then
             get_listening_ports | USE_COLOR=true SHELL=/bin/bash fzf \
                 --ansi \
+                --header-lines=2 \
                 --header "$header_msg" \
                 --bind "k:change-preview(handle_port_action {} confirm)" \
                 --bind "y:execute(handle_port_action {} kill)+reload(USE_COLOR=true get_listening_ports)+change-preview(handle_port_action {} preview)" \
@@ -482,6 +490,7 @@ run_fzf_interface() {
                 --height=100%
         else
             get_listening_ports | SHELL=/bin/bash fzf \
+                --header-lines=2 \
                 --header "$header_msg" \
                 --bind "k:change-preview(handle_port_action {} confirm)" \
                 --bind "y:execute(handle_port_action {} kill)+reload(get_listening_ports)+change-preview(handle_port_action {} preview)" \
