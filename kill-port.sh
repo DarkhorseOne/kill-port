@@ -2,7 +2,7 @@
 
 # Version information
 SCRIPT_NAME="Kill Port"
-VERSION="1.0.0"
+VERSION="1.0.1"
 AUTHOR="DARKHORSEONE LIMITED"
 LICENSE="MIT License"
 DESCRIPTION="Interactive command-line tool to find and kill processes running on specific ports"
@@ -10,42 +10,105 @@ DESCRIPTION="Interactive command-line tool to find and kill processes running on
 # Parse command line arguments
 AUTO_REFRESH=false
 REFRESH_INTERVAL=5
+USE_COLOR=false
+
+# Color definitions
+if [[ -t 1 ]]; then
+    # Terminal supports colors
+    RED='\033[0;31m'
+    GREEN='\033[0;32m'
+    YELLOW='\033[0;33m'
+    BLUE='\033[0;34m'
+    MAGENTA='\033[0;35m'
+    CYAN='\033[0;36m'
+    WHITE='\033[0;37m'
+    BOLD='\033[1m'
+    DIM='\033[2m'
+    RESET='\033[0m'
+    
+    # Bright colors
+    BRIGHT_RED='\033[1;31m'
+    BRIGHT_GREEN='\033[1;32m'
+    BRIGHT_YELLOW='\033[1;33m'
+    BRIGHT_BLUE='\033[1;34m'
+    BRIGHT_MAGENTA='\033[1;35m'
+    BRIGHT_CYAN='\033[1;36m'
+    BRIGHT_WHITE='\033[1;37m'
+else
+    # No color support
+    RED=''
+    GREEN=''
+    YELLOW=''
+    BLUE=''
+    MAGENTA=''
+    CYAN=''
+    WHITE=''
+    BOLD=''
+    DIM=''
+    RESET=''
+    BRIGHT_RED=''
+    BRIGHT_GREEN=''
+    BRIGHT_YELLOW=''
+    BRIGHT_BLUE=''
+    BRIGHT_MAGENTA=''
+    BRIGHT_CYAN=''
+    BRIGHT_WHITE=''
+fi
+
+# Function to colorize text based on USE_COLOR setting
+colorize() {
+    local color_code="$1"
+    local text="$2"
+    
+    if [[ "$USE_COLOR" == "true" ]]; then
+        echo -e "${color_code}${text}${RESET}"
+    else
+        echo "$text"
+    fi
+}
 
 # Function to show version information
 show_version() {
-    echo "$SCRIPT_NAME v$VERSION"
-    echo "$DESCRIPTION"
+    colorize "$BOLD$BRIGHT_CYAN" "$SCRIPT_NAME v$VERSION"
+    colorize "$DIM" "$DESCRIPTION"
     echo ""
-    echo "Author: $AUTHOR"
-    echo "License: $LICENSE"
+    colorize "$YELLOW" "Author: $AUTHOR"
+    colorize "$YELLOW" "License: $LICENSE"
     echo ""
-    echo "Features:"
-    echo "  • Interactive port browsing with fzf"
-    echo "  • Process preview and confirmation dialogs"
-    echo "  • Optional auto-refresh functionality"
-    echo "  • Cross-platform compatibility (macOS/Linux)"
+    colorize "$BOLD$GREEN" "Features:"
+    colorize "$GREEN" "  • Interactive port browsing with fzf"
+    colorize "$GREEN" "  • Process preview and confirmation dialogs"
+    colorize "$GREEN" "  • Optional auto-refresh functionality"
+    colorize "$GREEN" "  • Cross-platform compatibility (macOS/Linux)"
+    colorize "$GREEN" "  • Beautiful colored output (optional)"
     echo ""
-    echo "Repository: https://github.com/darkhorseone/kill-port"
+    colorize "$BLUE" "Repository: https://github.com/darkhorseone/kill-port"
 }
 
 # Function to show usage
 show_usage() {
-    echo "Usage: $0 [OPTIONS]"
+    colorize "$BOLD$BRIGHT_WHITE" "Usage: $0 [OPTIONS]"
     echo ""
-    echo "Options:"
-    echo "  --auto-refresh, -a    Enable auto-refresh every 5 seconds (default: disabled)"
-    echo "  --interval N, -i N    Set auto-refresh interval in seconds (default: 5)"
-    echo "  --version, -v        Show version information"
-    echo "  --help, -h           Show this help message"
+    colorize "$BOLD$YELLOW" "Options:"
+    colorize "$CYAN" "  --auto-refresh, -a    Enable auto-refresh every 5 seconds (default: disabled)"
+    colorize "$CYAN" "  --interval N, -i N    Set auto-refresh interval in seconds (default: 5)"
+    colorize "$CYAN" "  --color, -c           Enable beautiful colored output (default: disabled)"
+    colorize "$CYAN" "  --no-color            Disable colored output (override --color)"
+    colorize "$CYAN" "  --version, -v         Show version information"
+    colorize "$CYAN" "  --help, -h            Show this help message"
     echo ""
-    echo "Examples:"
-    echo "  $0                   # Run without auto-refresh"
-    echo "  $0 --auto-refresh    # Run with auto-refresh every 5 seconds"
-    echo "  $0 -a -i 10          # Run with auto-refresh every 10 seconds"
-    echo "  $0 --version         # Show version information"
+    colorize "$BOLD$GREEN" "Examples:"
+    colorize "$GREEN" "  $0                    # Run without auto-refresh or colors"
+    colorize "$GREEN" "  $0 --color            # Run with beautiful colored output"
+    colorize "$GREEN" "  $0 --auto-refresh     # Run with auto-refresh every 5 seconds"
+    colorize "$GREEN" "  $0 -a -i 10 -c        # Run with auto-refresh every 10 seconds and colors"
+    colorize "$GREEN" "  $0 --version          # Show version information"
 }
 
 # Parse arguments
+SHOW_VERSION=false
+SHOW_HELP=false
+
 while [[ $# -gt 0 ]]; do
     case $1 in
         --auto-refresh|-a)
@@ -61,39 +124,78 @@ while [[ $# -gt 0 ]]; do
                 exit 1
             fi
             ;;
+        --color|-c)
+            USE_COLOR=true
+            shift
+            ;;
+        --no-color)
+            USE_COLOR=false
+            shift
+            ;;
         --version|-v)
-            show_version
-            exit 0
+            SHOW_VERSION=true
+            shift
             ;;
         --help|-h)
-            show_usage
-            exit 0
+            SHOW_HELP=true
+            shift
             ;;
         *)
             echo "Error: Unknown option $1" >&2
-            show_usage
-            exit 1
+            SHOW_HELP=true
+            break
             ;;
     esac
 done
 
+# Handle version and help after all arguments are parsed
+if [[ "$SHOW_VERSION" == "true" ]]; then
+    show_version
+    exit 0
+fi
+
+if [[ "$SHOW_HELP" == "true" ]]; then
+    show_usage
+    exit 0
+fi
+
 # Check if fzf is installed
 if ! command -v fzf &> /dev/null; then
-    echo "Error: fzf is not installed." >&2
-    echo "This script requires fzf, a command-line fuzzy finder." >&2
-    echo "" >&2
-    echo "To install fzf:" >&2
-    if [[ "$(uname)" == "Darwin" ]]; then
-        echo "On macOS (using Homebrew): brew install fzf" >&2
-    elif [[ "$(uname)" == "Linux" ]]; then
-        if command -v apt-get &> /dev/null; then
-            echo "On Debian/Ubuntu: sudo apt-get update && sudo apt-get install fzf" >&2
-        elif command -v yum &> /dev/null; then
-            echo "On RHEL/CentOS/Amazon Linux: sudo yum install fzf" >&2
-        elif command -v dnf &> /dev/null; then
-            echo "On Fedora/Amazon Linux 2: sudo dnf install fzf" >&2
-        else
-            echo "Could not detect package manager. Please install fzf manually from https://github.com/junegunn/fzf" >&2
+    if [[ "$USE_COLOR" == "true" ]]; then
+        echo -e "${BRIGHT_RED}Error: fzf is not installed.${RESET}" >&2
+        echo -e "${YELLOW}This script requires fzf, a command-line fuzzy finder.${RESET}" >&2
+        echo "" >&2
+        echo -e "${BOLD}${CYAN}To install fzf:${RESET}" >&2
+        if [[ "$(uname)" == "Darwin" ]]; then
+            echo -e "${GREEN}On macOS (using Homebrew): brew install fzf${RESET}" >&2
+        elif [[ "$(uname)" == "Linux" ]]; then
+            if command -v apt-get &> /dev/null; then
+                echo -e "${GREEN}On Debian/Ubuntu: sudo apt-get update && sudo apt-get install fzf${RESET}" >&2
+            elif command -v yum &> /dev/null; then
+                echo -e "${GREEN}On RHEL/CentOS/Amazon Linux: sudo yum install fzf${RESET}" >&2
+            elif command -v dnf &> /dev/null; then
+                echo -e "${GREEN}On Fedora/Amazon Linux 2: sudo dnf install fzf${RESET}" >&2
+            else
+                echo -e "${GREEN}Could not detect package manager. Please install fzf manually from https://github.com/junegunn/fzf${RESET}" >&2
+            fi
+        fi
+    else
+        echo "Error: fzf is not installed." >&2
+        echo "This script requires fzf, a command-line fuzzy finder." >&2
+        echo "" >&2
+        echo "To install fzf:" >&2
+        if [[ "$(uname)" == "Darwin" ]]; then
+            echo "On macOS (using Homebrew): brew install fzf" >&2
+        elif [[ "$(uname)" == "Linux" ]]; then
+            if command -v apt-get &> /dev/null; then
+                echo "On Debian/Ubuntu: sudo apt-get update && sudo apt-get install fzf" >&2
+            elif command -v yum &> /dev/null; then
+                echo "On RHEL/CentOS/Amazon Linux: sudo yum install fzf" >&2
+            elif command -v dnf &> /dev/null; then
+                echo "On Fedora/Amazon Linux 2: sudo dnf install fzf" >&2
+            else
+                echo "Could not detect package manager. Please install fzf manually from https://github.com/junegunn/fzf" >&2
+            fi
         fi
     fi
     exit 1
@@ -118,7 +220,11 @@ handle_port_action() {
 
     # Check if port is a valid number
     if [[ ! "$port" =~ ^[0-9]+$ ]]; then
-        echo "Could not determine a valid port from '$port_str'."
+        if [[ "$USE_COLOR" == "true" ]]; then
+            echo -e "${YELLOW}Could not determine a valid port from '$port_str'.${RESET}"
+        else
+            echo "Could not determine a valid port from '$port_str'."
+        fi
         return
     fi
 
@@ -126,7 +232,11 @@ handle_port_action() {
     local pids=$(lsof -t -i :"$port" 2>/dev/null)
 
     if [[ -z "$pids" ]]; then
-        echo "No process found running on port $port."
+        if [[ "$USE_COLOR" == "true" ]]; then
+            echo -e "${DIM}No process found running on port $port.${RESET}"
+        else
+            echo "No process found running on port $port."
+        fi
         return
     fi
 
@@ -135,23 +245,86 @@ handle_port_action() {
         CURRENT_SELECTED_LINE="$line"
         CURRENT_PREVIEW_MODE="preview"
         # Show process details for the preview
-        lsof -i :"$port"
+        if [[ "$USE_COLOR" == "true" ]]; then
+            echo -e "${BOLD}${BRIGHT_CYAN}🔍 Process Details for Port $port${RESET}"
+            echo ""
+            # Use colored lsof output
+            lsof -i :"$port" | while IFS= read -r line; do
+                if [[ "$line" =~ ^COMMAND ]]; then
+                    # Header line
+                    echo -e "${BOLD}${YELLOW}$line${RESET}"
+                else
+                    # Process line - colorize different parts manually
+                    # Extract components
+                    command=$(echo "$line" | awk '{print $1}')
+                    pid=$(echo "$line" | awk '{print $2}')
+                    user=$(echo "$line" | awk '{print $3}')
+                    fd=$(echo "$line" | awk '{print $4}')
+                    type=$(echo "$line" | awk '{print $5}')
+                    device=$(echo "$line" | awk '{print $6}')
+                    size=$(echo "$line" | awk '{print $7}')
+                    node=$(echo "$line" | awk '{print $8}')
+                    name=$(echo "$line" | awk '{print $9}')
+                    
+                    # Print with colors
+                    printf "${BRIGHT_GREEN}%-12s${RESET} ${BRIGHT_BLUE}%-8s${RESET} ${CYAN}%-10s${RESET} ${YELLOW}%-6s${RESET} ${MAGENTA}%-6s${RESET} ${WHITE}%-8s${RESET} ${DIM}%-8s${RESET} ${DIM}%-8s${RESET} ${GREEN}%s${RESET}\n" \
+                           "$command" "$pid" "$user" "$fd" "$type" "$device" "$size" "$node" "$name"
+                fi
+            done
+        else
+            lsof -i :"$port"
+        fi
     elif [[ "$action" == "confirm" ]]; then
         # Update current state
         CURRENT_SELECTED_LINE="$line"
         CURRENT_PREVIEW_MODE="confirm"
         # Show confirmation message
-        echo "═══════════════════════════════════════════════════════════════"
-        echo "CONFIRM KILL PROCESS ON PORT $port"
-        echo "═══════════════════════════════════════════════════════════════"
-        lsof -i :"$port"
-        echo ""
-        echo "┌─ AVAILABLE ACTIONS ─────────────────────────────────────────┐"
-        echo "│ Y: Kill the process and return to main interface            │"
-        echo "│ N: Cancel and return to main interface                      │"
-        echo "│ Q: Quit the program                                         │"
-        echo "│ Enter: Do nothing (stay in confirmation mode)               │"
-        echo "└─────────────────────────────────────────────────────────────┘"
+        if [[ "$USE_COLOR" == "true" ]]; then
+            echo -e "${BOLD}${RED}═══════════════════════════════════════════════════════════════${RESET}"
+            echo -e "${BOLD}${BRIGHT_RED}⚠️  CONFIRM KILL PROCESS ON PORT $port${RESET}"
+            echo -e "${BOLD}${RED}═══════════════════════════════════════════════════════════════${RESET}"
+            # Show process details with colors
+            lsof -i :"$port" | while IFS= read -r line; do
+                if [[ "$line" =~ ^COMMAND ]]; then
+                    echo -e "${BOLD}${YELLOW}$line${RESET}"
+                else
+                    # Process line - colorize different parts manually
+                    # Extract components
+                    command=$(echo "$line" | awk '{print $1}')
+                    pid=$(echo "$line" | awk '{print $2}')
+                    user=$(echo "$line" | awk '{print $3}')
+                    fd=$(echo "$line" | awk '{print $4}')
+                    type=$(echo "$line" | awk '{print $5}')
+                    device=$(echo "$line" | awk '{print $6}')
+                    size=$(echo "$line" | awk '{print $7}')
+                    node=$(echo "$line" | awk '{print $8}')
+                    name=$(echo "$line" | awk '{print $9}')
+                    
+                    # Print with colors
+                    printf "${BRIGHT_GREEN}%-12s${RESET} ${BRIGHT_BLUE}%-8s${RESET} ${CYAN}%-10s${RESET} ${YELLOW}%-6s${RESET} ${MAGENTA}%-6s${RESET} ${WHITE}%-8s${RESET} ${DIM}%-8s${RESET} ${DIM}%-8s${RESET} ${GREEN}%s${RESET}\n" \
+                           "$command" "$pid" "$user" "$fd" "$type" "$device" "$size" "$node" "$name"
+                fi
+            done
+            echo ""
+            echo -e "${BOLD}${CYAN}┌─ AVAILABLE ACTIONS ─────────────────────────────────────────┐${RESET}"
+            echo -e "${CYAN}│ Y: Kill the process and return to main interface            │${RESET}"
+            echo -e "${CYAN}│ N: Cancel and return to main interface                      │${RESET}"
+            echo -e "${CYAN}│ Q: Quit the program                                         │${RESET}"
+            echo -e "${CYAN}│ Enter: Do nothing (stay in confirmation mode)               │${RESET}"
+            echo -e "${BOLD}${CYAN}└─────────────────────────────────────────────────────────────┘${RESET}"
+        else
+            echo "═══════════════════════════════════════════════════════════════"
+            echo "CONFIRM KILL PROCESS ON PORT $port"
+            echo "═══════════════════════════════════════════════════════════════"
+            lsof -i :"$port"
+            echo ""
+            echo "┌─ AVAILABLE ACTIONS ─────────────────────────────────────────┐"
+            echo "│ Y: Kill the process and return to main interface            │"
+            echo "│ N: Cancel and return to main interface                      │"
+            echo "│ Q: Quit the program                                         │"
+            echo "│ Enter: Do nothing (stay in confirmation mode)               │"
+            echo "└─────────────────────────────────────────────────────────────┘"
+        fi
     elif [[ "$action" == "preserve" ]]; then
         # Preserve current preview state during auto-refresh
         if [[ "$CURRENT_PREVIEW_MODE" == "confirm" ]]; then
@@ -163,20 +336,46 @@ handle_port_action() {
         # Kill the process(es)
         echo "$pids" | while read -r pid; do
             if kill -9 "$pid"; then
-                echo "Successfully killed process with PID $pid on port $port."
+                if [[ "$USE_COLOR" == "true" ]]; then
+                    echo -e "${BRIGHT_GREEN}✓ Successfully killed process with PID $pid on port $port.${RESET}"
+                else
+                    echo "✓ Successfully killed process with PID $pid on port $port."
+                fi
             else
-                echo "Failed to kill process with PID $pid on port $port."
+                if [[ "$USE_COLOR" == "true" ]]; then
+                    echo -e "${BRIGHT_RED}✗ Failed to kill process with PID $pid on port $port.${RESET}"
+                else
+                    echo "✗ Failed to kill process with PID $pid on port $port."
+                fi
             fi
         done
         echo ""
-        echo "Port list will reload automatically..."
+        if [[ "$USE_COLOR" == "true" ]]; then
+            echo -e "${BLUE}🔄 Port list will reload automatically...${RESET}"
+        else
+            echo "🔄 Port list will reload automatically..."
+        fi
         sleep 1 # Brief pause to allow user to read the message
     fi
 }
 
 # Function to get listening ports
 get_listening_ports() {
-    netstat -anv | grep LISTEN
+    if [[ "$USE_COLOR" == "true" ]]; then
+        # Apply colors to the port list while preserving original format
+        netstat -anv | grep LISTEN | while IFS= read -r line; do
+            # Apply colors using echo -e for proper escape sequence handling
+            echo -e "$line" | \
+                sed -e "s/^tcp[46]/$(printf '\033[0;35m')&$(printf '\033[0m')/" \
+                    -e "s/^udp[46]/$(printf '\033[0;35m')&$(printf '\033[0m')/" \
+                    -e "s/\*\.[0-9][0-9]*/$(printf '\033[1;32m')&$(printf '\033[0m')/g" \
+                    -e "s/[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*/$(printf '\033[1;32m')&$(printf '\033[0m')/g" \
+                    -e "s/LISTEN/$(printf '\033[1;33m')&$(printf '\033[0m')/g"
+        done
+    else
+        # No colors, just return normal output
+        netstat -anv | grep LISTEN
+    fi
 }
 
 # Function to check if selected port still exists
@@ -212,7 +411,7 @@ run_fzf_interface() {
         CURRENT_PREVIEW_MODE="preview"
     fi
     
-    # Build header message
+    # Build header message (keep simple for fzf header compatibility)
     local header_msg="Use arrow keys to navigate, press 'K' to kill (with confirmation), 'Q' to quit"
     if [[ "$AUTO_REFRESH" == "true" ]]; then
         header_msg="$header_msg | Auto-refresh: ${REFRESH_INTERVAL}s"
@@ -221,17 +420,32 @@ run_fzf_interface() {
     
     if [[ "$AUTO_REFRESH" == "true" ]]; then
         # Run with auto-refresh timeout
-        get_listening_ports | SHELL=/bin/bash fzf \
-            --header "$header_msg" \
-            --bind "k:change-preview(handle_port_action {} confirm)" \
-            --bind "y:execute(handle_port_action {} kill)+reload(get_listening_ports)+change-preview(handle_port_action {} preview)" \
-            --bind "n:change-preview(handle_port_action {} preview)" \
-            --bind "q:abort" \
-            --bind "enter:ignore" \
-            --bind "r:reload(get_listening_ports)" \
-            --preview "$preview_cmd" \
-            --preview-window=up:45%:wrap \
-            --height=100% &
+        if [[ "$USE_COLOR" == "true" ]]; then
+            get_listening_ports | USE_COLOR=true SHELL=/bin/bash fzf \
+                --ansi \
+                --header "$header_msg" \
+                --bind "k:change-preview(handle_port_action {} confirm)" \
+                --bind "y:execute(handle_port_action {} kill)+reload(USE_COLOR=true get_listening_ports)+change-preview(handle_port_action {} preview)" \
+                --bind "n:change-preview(handle_port_action {} preview)" \
+                --bind "q:abort" \
+                --bind "enter:ignore" \
+                --bind "r:reload(USE_COLOR=true get_listening_ports)" \
+                --preview "$preview_cmd" \
+                --preview-window=up:20:wrap \
+                --height=100% &
+        else
+            get_listening_ports | SHELL=/bin/bash fzf \
+                --header "$header_msg" \
+                --bind "k:change-preview(handle_port_action {} confirm)" \
+                --bind "y:execute(handle_port_action {} kill)+reload(get_listening_ports)+change-preview(handle_port_action {} preview)" \
+                --bind "n:change-preview(handle_port_action {} preview)" \
+                --bind "q:abort" \
+                --bind "enter:ignore" \
+                --bind "r:reload(get_listening_ports)" \
+                --preview "$preview_cmd" \
+                --preview-window=up:20:wrap \
+                --height=100% &
+        fi
         
         local fzf_pid=$!
         
@@ -253,17 +467,32 @@ run_fzf_interface() {
         return 0  # Return 0 to indicate timeout (continue loop)
     else
         # Run without auto-refresh - standard fzf behavior
-        get_listening_ports | SHELL=/bin/bash fzf \
-            --header "$header_msg" \
-            --bind "k:change-preview(handle_port_action {} confirm)" \
-            --bind "y:execute(handle_port_action {} kill)+reload(get_listening_ports)+change-preview(handle_port_action {} preview)" \
-            --bind "n:change-preview(handle_port_action {} preview)" \
-            --bind "q:abort" \
-            --bind "enter:ignore" \
-            --bind "r:reload(get_listening_ports)" \
-            --preview "$preview_cmd" \
-            --preview-window=up:45%:wrap \
-            --height=100%
+        if [[ "$USE_COLOR" == "true" ]]; then
+            get_listening_ports | USE_COLOR=true SHELL=/bin/bash fzf \
+                --ansi \
+                --header "$header_msg" \
+                --bind "k:change-preview(handle_port_action {} confirm)" \
+                --bind "y:execute(handle_port_action {} kill)+reload(USE_COLOR=true get_listening_ports)+change-preview(handle_port_action {} preview)" \
+                --bind "n:change-preview(handle_port_action {} preview)" \
+                --bind "q:abort" \
+                --bind "enter:ignore" \
+                --bind "r:reload(USE_COLOR=true get_listening_ports)" \
+                --preview "$preview_cmd" \
+                --preview-window=up:20:wrap \
+                --height=100%
+        else
+            get_listening_ports | SHELL=/bin/bash fzf \
+                --header "$header_msg" \
+                --bind "k:change-preview(handle_port_action {} confirm)" \
+                --bind "y:execute(handle_port_action {} kill)+reload(get_listening_ports)+change-preview(handle_port_action {} preview)" \
+                --bind "n:change-preview(handle_port_action {} preview)" \
+                --bind "q:abort" \
+                --bind "enter:ignore" \
+                --bind "r:reload(get_listening_ports)" \
+                --preview "$preview_cmd" \
+                --preview-window=up:20:wrap \
+                --height=100%
+        fi
         
         return $?
     fi
@@ -274,10 +503,16 @@ export -f handle_port_action
 export -f get_listening_ports
 export -f port_still_exists
 export -f run_fzf_interface
+export -f colorize
 
 # Export global variables
 export CURRENT_SELECTED_LINE
 export CURRENT_PREVIEW_MODE
+export USE_COLOR
+
+# Export color variables for subshells
+export RED GREEN YELLOW BLUE MAGENTA CYAN WHITE BOLD DIM RESET
+export BRIGHT_RED BRIGHT_GREEN BRIGHT_YELLOW BRIGHT_BLUE BRIGHT_MAGENTA BRIGHT_CYAN BRIGHT_WHITE
 
 # Main execution
 if [[ "$AUTO_REFRESH" == "true" ]]; then
@@ -299,11 +534,19 @@ if [[ "$AUTO_REFRESH" == "true" ]]; then
             continue
         elif [[ $exit_code -eq 1 ]]; then
             # User pressed q - exit normally
-            echo "Goodbye!"
+            if [[ "$USE_COLOR" == "true" ]]; then
+                echo -e "${BRIGHT_GREEN}👋 Goodbye!${RESET}"
+            else
+                echo "👋 Goodbye!"
+            fi
             break
         elif [[ $exit_code -eq 130 ]]; then
             # User pressed Ctrl+C - exit
-            echo "Bye. ($SCRIPT_NAME v$VERSION, powered by $AUTHOR)"
+            if [[ "$USE_COLOR" == "true" ]]; then
+                echo -e "${BRIGHT_CYAN}👋 Bye. ($SCRIPT_NAME v$VERSION, Made by $AUTHOR)${RESET}"
+            else
+                echo "👋 Bye. ($SCRIPT_NAME v$VERSION, Made by $AUTHOR)"
+            fi
             break
         elif [[ $exit_code -eq 143 ]] || [[ $exit_code -eq 15 ]]; then
             # SIGTERM from auto-refresh timeout - continue loop
@@ -319,8 +562,16 @@ else
     exit_code=$?
     
     if [[ $exit_code -eq 1 ]]; then
-        echo "Goodbye!"
+        if [[ "$USE_COLOR" == "true" ]]; then
+            echo -e "${BRIGHT_GREEN}👋 Goodbye!${RESET}"
+        else
+            echo "👋 Goodbye!"
+        fi
     elif [[ $exit_code -eq 130 ]]; then
-        echo "Bye. ($SCRIPT_NAME v$VERSION, powered by $AUTHOR)"
+        if [[ "$USE_COLOR" == "true" ]]; then
+            echo -e "${BRIGHT_CYAN}👋 Bye. ($SCRIPT_NAME v$VERSION, Made by $AUTHOR)${RESET}"
+        else
+            echo "👋 Bye. ($SCRIPT_NAME v$VERSION, Made by $AUTHOR)"
+        fi
     fi
 fi
