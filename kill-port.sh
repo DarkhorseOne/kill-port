@@ -303,7 +303,7 @@ if [[ "$AUTO_REFRESH" == "true" ]]; then
             break
         elif [[ $exit_code -eq 130 ]]; then
             # User pressed Ctrl+C - exit
-            echo "Interrupted by user"
+            echo "Bye. ($SCRIPT_NAME v$VERSION, powered by $AUTHOR)"
             break
         elif [[ $exit_code -eq 143 ]] || [[ $exit_code -eq 15 ]]; then
             # SIGTERM from auto-refresh timeout - continue loop
@@ -321,6 +321,6 @@ else
     if [[ $exit_code -eq 1 ]]; then
         echo "Goodbye!"
     elif [[ $exit_code -eq 130 ]]; then
-        echo "Interrupted by user"
+        echo "Bye. ($SCRIPT_NAME v$VERSION, powered by $AUTHOR)"
     fi
 fi
