@@ -437,7 +437,7 @@ run_fzf_interface() {
                 --bind "enter:ignore" \
                 --bind "r:reload(USE_COLOR=true get_listening_ports)" \
                 --preview "$preview_cmd" \
-                --preview-window=up:20:wrap \
+                --preview-window=up:14:wrap \
                 --height=100% &
         else
             get_listening_ports | SHELL=/bin/bash fzf \
@@ -450,7 +450,7 @@ run_fzf_interface() {
                 --bind "enter:ignore" \
                 --bind "r:reload(get_listening_ports)" \
                 --preview "$preview_cmd" \
-                --preview-window=up:20:wrap \
+                --preview-window=up:14:wrap \
                 --height=100% &
         fi
         
@@ -486,7 +486,7 @@ run_fzf_interface() {
                 --bind "enter:ignore" \
                 --bind "r:reload(USE_COLOR=true get_listening_ports)" \
                 --preview "$preview_cmd" \
-                --preview-window=up:20:wrap \
+                --preview-window=up:14:wrap \
                 --height=100%
         else
             get_listening_ports | SHELL=/bin/bash fzf \
@@ -499,7 +499,7 @@ run_fzf_interface() {
                 --bind "enter:ignore" \
                 --bind "r:reload(get_listening_ports)" \
                 --preview "$preview_cmd" \
-                --preview-window=up:20:wrap \
+                --preview-window=up:14:wrap \
                 --height=100%
         fi
         
